@@ -44,6 +44,7 @@ export default function MinimalTuner() {
   const [mode, setMode] = useState<Mode>("auto")
   const [dial, setDial] = useState(true)
   const [listening, setListening] = useState(false)
+  const [manualModeMessage, setManualModeMessage] = useState(false)
   const preset: PresetDefinition = useMemo(() => getPreset("standard"), [])
   const [selected, setSelected] = useState<string | null>(null)
 
@@ -67,8 +68,17 @@ export default function MinimalTuner() {
   const sortedStrings = useMemo(() => [...preset.strings].sort((a, b) => a.hz - b.hz), [preset])
 
   // Sticky auto-targeting with hysteresis
-  const [activeLabel, setActiveLabel] = useState<string>(preset.strings[0].label)
-  useEffect(() => setActiveLabel(preset.strings[0].label), [preset])
+  const [activeLabel, setActiveLabel] = useState<string | null>(null)
+  useEffect(() => {
+    // Only set active label when there's actual frequency input
+    if (frequency && !activeLabel) {
+      const candidate = sortedStrings.reduce(
+        (best, s) => (Math.abs(frequency - s.hz) < Math.abs(frequency - best.hz) ? s : best),
+        sortedStrings[0]
+      )
+      setActiveLabel(candidate.label)
+    }
+  }, [frequency, preset, activeLabel, sortedStrings])
 
   useEffect(() => {
     if (mode !== "auto" || !frequency) return
@@ -139,41 +149,42 @@ export default function MinimalTuner() {
 
   const noteLetter = target.label.replace(/[0-9]/g, "")
   const noteOct = target.label.match(/[0-9]+/)?.[0] ?? ""
-  const helper = !hasSignalHeld ? "Play a string" : inTuneNow ? "In tune" : uiCents < 0 ? "Tune up" : "Tune down"
+  const helper = manualModeMessage ? "Manual mode activated" : !hasSignalHeld ? "Play a string" : inTuneNow ? "In tune" : uiCents < 0 ? "Tune up" : "Tune down"
 
   // Reference tone (press-and-hold)
-  const ctxRef = useRef<AudioContext | null>(null)
-  const oscRef = useRef<OscillatorNode | null>(null)
-  const gainRef = useRef<GainNode | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   useEffect(() => () => stopTone(), [])
-  const startTone = async (hz: number) => {
-    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext
-    const ctx = ctxRef.current ?? new Ctx()
-    ctxRef.current = ctx
-    stopTone()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = "sine"
-    osc.frequency.value = hz
-    gain.gain.value = 0.0001
-    osc.connect(gain).connect(ctx.destination)
-    osc.start()
-    gain.gain.exponentialRampToValueAtTime(0.05, ctx.currentTime + 0.06)
-    oscRef.current = osc
-    gainRef.current = gain
-  }
-  const stopTone = () => {
-    const ctx = ctxRef.current
-    const osc = oscRef.current
-    const gain = gainRef.current
-    if (ctx && osc && gain) {
-      try {
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.03)
-        osc.stop(ctx.currentTime + 0.04)
-      } catch {}
+  
+  const startTone = async (note: string) => {
+    try {
+      stopTone()
+      const audio = new Audio(`/sounds/${note}.mp3`)
+      audio.volume = 0.5
+      audio.loop = false
+      await audio.play()
+      audioRef.current = audio
+      
+      // Auto-cleanup when audio finishes
+      audio.onended = () => {
+        audioRef.current = null
+      }
+    } catch (error) {
+      console.error('Error starting tone:', error)
     }
-    oscRef.current = null
-    gainRef.current = null
+  }
+  
+  const stopTone = () => {
+    const audio = audioRef.current
+    if (audio) {
+      try {
+        audio.pause()
+        audio.currentTime = 0
+        audio.loop = false
+      } catch (error) {
+        console.error('Error stopping tone:', error)
+      }
+    }
+    audioRef.current = null
   }
 
   // Layout measurement for peg alignment and indicator vertical placement only
@@ -233,14 +244,14 @@ export default function MinimalTuner() {
         <div className="flex items-center space-x-2">
           <div className="w-20 h-20 flex items-center justify-center">
             <Image
-              src="/images/guitar-tune.webp"
+              src="/images/guitar-tune-alt.webp"
               alt="GuitarTune Logo"
               width={80}
               height={80}
               className="object-contain"
             />
           </div>
-          <span className="text-xl font-bold text-white">guitartune.app</span>
+          <h1 className="text-xl font-bold text-white">Guitar Tune</h1>
         </div>
         <div className="flex items-center gap-8">
           <div className="text-right">
@@ -355,15 +366,15 @@ export default function MinimalTuner() {
               key={s.label}
               onClick={() => {
                 setSelected(s.label)
-                if (mode === "auto") setMode("manual")
+                if (mode === "auto") {
+                  setMode("manual")
+                  setManualModeMessage(true)
+                  setTimeout(() => setManualModeMessage(false), 3000)
+                }
+                startTone(s.label)
               }}
-              onMouseDown={() => startTone(s.hz)}
-              onTouchStart={() => startTone(s.hz)}
-              onMouseUp={stopTone}
-              onMouseLeave={stopTone}
-              onTouchEnd={stopTone}
               className={cn(
-                "group absolute z-40 flex h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border text-lg font-semibold transition-all",
+                "group absolute z-40 flex h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border text-lg font-semibold transition-all cursor-pointer",
                 isActive
                   ? "border-emerald-500 bg-emerald-500 text-black shadow-[0_0_0_2px_rgba(16,185,129,0.35),0_0_40px_rgba(16,185,129,0.25)]"
                   : "border-white/15 bg-white/5 text-neutral-100 backdrop-blur hover:bg-white/10"

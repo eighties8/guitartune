@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "GuitarTune.app - Guitar Tuner",
-  description: "Professional guitar tuning application",
+  description: "Online guitar tuner app",
 };
 
 export default function RootLayout({

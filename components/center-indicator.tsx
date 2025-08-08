@@ -34,6 +34,20 @@ export function CenterIndicator({
 
   return (
     <div className="absolute z-30 left-1/2 -translate-x-1/2 select-none" style={{ top: top ?? 56 }}>
+      {/* Helper text - moved above badge */}
+      <div
+        className={cn(
+          "absolute left-1/2 -translate-x-1/2 -top-12 inline-flex items-center whitespace-nowrap rounded-full border px-3 py-2 text-xs backdrop-blur",
+          ok
+            ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+            : hasSignal
+            ? "border-amber-400/40 bg-amber-400/10 text-amber-200"
+            : "border-neutral-600/40 bg-neutral-800/70 text-neutral-300"
+        )}
+      >
+        {message}
+      </div>
+
       {/* Badge row */}
       <div className="relative mx-auto w-11">
         {/* Badge */}
@@ -60,20 +74,6 @@ export function CenterIndicator({
               borderTop: "8px solid #0a0a0a",
             }}
           />
-        </div>
-
-        {/* Helper pill */}
-        <div
-          className={cn(
-            "absolute left-full top-1/2 -translate-y-1/2 ml-3 inline-flex items-center whitespace-nowrap rounded-full border px-3 py-2 text-xs backdrop-blur",
-            ok
-              ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
-              : hasSignal
-              ? "border-amber-400/40 bg-amber-400/10 text-amber-200"
-              : "border-neutral-600/40 bg-neutral-800/70 text-neutral-300"
-          )}
-        >
-          {message}
         </div>
       </div>
 
