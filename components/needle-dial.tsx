@@ -11,7 +11,7 @@ export default function NeedleDial({ cents, inTune = false }: Props) {
 
   return (
     <div
-      className="pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-[58%] scale-90"
+      className="pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-[48%] scale-90"
       style={{ marginTop: -30 }} // nudge up ~30px
       aria-label="Analog tuning dial"
     >
@@ -23,18 +23,16 @@ export default function NeedleDial({ cents, inTune = false }: Props) {
             <stop offset="1" stopColor="#f59e0b" />
           </linearGradient>
         </defs>
-        {/* Outer arc (thinner) */}
-        <path d={describeArc(110, 120, 90, 200, -20)} fill="none" stroke="url(#dialGrad)" strokeWidth="8" opacity="0.45" strokeLinecap="round" />
         {/* Center green band (thinner) */}
-        <path d={describeArc(110, 120, 90, -8, 8)} fill="none" stroke="#10b981" strokeWidth="8" strokeLinecap="round" />
         {[-50, -25, 0, 25, 50].map((t) => {
           const r1 = polarToCartesian(110, 120, 88, (t / 50) * 45)
           const r2 = polarToCartesian(110, 120, 72, (t / 50) * 45)
-          return <line key={t} x1={r1.x} y1={r1.y} x2={r2.x} y2={r2.y} stroke="#64748b" strokeWidth={t === 0 ? 3 : 2} />
+          return <line key={t} x1={r1.x} y1={r1.y} x2={r2.x} y2={r2.y} stroke="#ffffff" strokeWidth={t === 0 ? 2 : 1} />
         })}
+        <path d={describeArc(110, 120, 90, -8, 8)} fill="none" stroke="#10b981" strokeWidth="8" strokeLinecap="round" />
         <g transform={`rotate(${angle},110,120)`}>
           {/* Needle thinner */}
-          <line x1="110" y1="120" x2="110" y2="34" stroke={inTune ? "#10b981" : "#e5e7eb"} strokeWidth="3" strokeLinecap="round" />
+          <line x1="110" y1="120" x2="110" y2="34" stroke={inTune ? "#10b981" : "#e5e7eb"} strokeWidth="2" strokeLinecap="round" />
           <circle cx="110" cy="120" r="6" fill={inTune ? "#10b981" : "#e5e7eb"} />
         </g>
       </svg>
