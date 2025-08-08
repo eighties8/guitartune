@@ -29,16 +29,15 @@ const PEGS: Peg[] = [
   { label: "E4", side: "right", pctY: 0.705 },
 ]
 
-const BUBBLE_SIZE = 64
-const GAP = 36
+const DEFAULT_PEG_SIZE = 64
 const PEG_Y_OFFSET = -49
 const HYSTERESIS_CENTS = 15
 const DETECT_HOLD_MS = 1200
 const CHECK_HOLD_RINGING_MS = 1800
 const CHECK_HOLD_AFTER_STOP_MS = 1200
 
-// Vertical anchor: place the indicator ~10px higher than before, just over the headstock tip.
-const LINE_START_OFFSET_FROM_TIP = -4 // px relative to the headstock tip (negative = slightly above)
+// Vertical anchor: set slightly above the headstock tip
+const LINE_START_OFFSET_FROM_TIP = -14 // px relative to the headstock tip (negative = above)
 
 export default function MinimalTuner() {
   const [mode, setMode] = useState<Mode>("auto")
@@ -192,6 +191,8 @@ export default function MinimalTuner() {
   const headRef = useRef<HTMLDivElement | null>(null)
   const [pegCoords, setPegCoords] = useState<Record<string, { left: number; top: number }>>({})
   const [indicatorTop, setIndicatorTop] = useState<number | null>(null)
+  const [pegSize, setPegSize] = useState<number>(DEFAULT_PEG_SIZE)
+  const [indicatorScale, setIndicatorScale] = useState<number>(1)
 
   useEffect(() => {
     const calc = () => {
@@ -206,12 +207,19 @@ export default function MinimalTuner() {
       const topEdge = headRect.top - stageRect.top
       const height = headRect.height
 
-      // Peg positions
+      // Responsive derived sizes
+      const nextPegSize = Math.max(46, Math.min(84, Math.round(stageRect.width * 0.18)))
+      // Gap from headstock edge to peg center
+      const gap = Math.max(6, Math.min(16, stageRect.width * 0.022))
+      setPegSize(nextPegSize)
+      setIndicatorScale(Math.max(0.85, Math.min(1.1, stageRect.width / 430)))
+
+      // Peg positions (centered by current peg size)
       const coords: Record<string, { left: number; top: number }> = {}
       PEGS.forEach((p) => {
         const yCenter = topEdge + height * p.pctY + PEG_Y_OFFSET
-        const xCenter = p.side === "left" ? leftEdge - GAP : rightEdge + GAP
-        coords[p.label] = { left: xCenter - BUBBLE_SIZE / 2, top: yCenter }
+        const xCenter = p.side === "left" ? leftEdge - gap : rightEdge + gap
+        coords[p.label] = { left: xCenter - nextPegSize / 2, top: yCenter }
       })
       setPegCoords(coords)
 
@@ -238,35 +246,35 @@ export default function MinimalTuner() {
   }, [])
 
   return (
-    <div className="relative mx-auto max-w-[1200px] px-6 py-6">
+    <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 pt-0 pb-1 sm:py-6">
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-20 h-20 flex items-center justify-center">
+      <div className="mb-0 sm:mb-4 flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-between gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="size-10 sm:size-16 md:size-20 flex items-center justify-center shrink-0">
             <Image
               src="/images/guitar-tune-alt.webp"
               alt="GuitarTune Logo"
               width={80}
               height={80}
-              className="object-contain"
+              className="object-contain w-full h-full"
             />
           </div>
-          <h1 className="text-xl font-bold text-white">Guitar Tune</h1>
+          <h1 className="text-base sm:text-xl font-bold text-white truncate">Guitar Tune</h1>
         </div>
-        <div className="flex items-center gap-8">
-          <div className="text-right">
-            <div className="text-base font-semibold tracking-wide">Guitar 6‑string</div>
-            <div className="text-xs text-neutral-400">Standard (E A D G B E)</div>
+        <div className="flex w-full sm:w-auto flex-wrap items-center gap-3 sm:gap-6 justify-center sm:justify-end">
+          <div className="text-right hidden sm:block">
+            <div className="text-sm sm:text-base font-semibold tracking-wide">Guitar 6‑string</div>
+            <div className="text-[10px] sm:text-xs text-neutral-400">Standard (E A D G B E)</div>
           </div>
 
           {/* Switches */}
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-400">AUTO</span>
+          <div className="flex items-center gap-3 sm:gap-6">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-[10px] sm:text-xs text-neutral-400">AUTO</span>
               <Switch className="cursor-pointer" checked={mode === "auto"} onCheckedChange={(v) => setMode(v ? "auto" : "manual")} />
               <span
                 className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                  "rounded-full px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium",
                   mode === "auto"
                     ? "bg-emerald-600/20 text-emerald-300 border border-emerald-500/40"
                     : "bg-neutral-800 text-neutral-300 border border-white/10"
@@ -275,12 +283,12 @@ export default function MinimalTuner() {
                 {mode === "auto" ? "ON" : "OFF"}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-400">DIAL</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-[10px] sm:text-xs text-neutral-400">DIAL</span>
               <Switch className="cursor-pointer" checked={dial} onCheckedChange={setDial} />
               <span
                 className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                  "rounded-full px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium",
                   dial ? "bg-sky-600/20 text-sky-300 border border-sky-500/40" : "bg-neutral-800 text-neutral-300 border border-white/10"
                 )}
               >
@@ -292,7 +300,7 @@ export default function MinimalTuner() {
           <Button
             onClick={toggleMic}
             className={cn(
-              "z-10 gap-2 rounded-full px-4 cursor-pointer",
+              "z-10 gap-2 rounded-full px-3 sm:px-4 cursor-pointer h-8 sm:h-9 hidden sm:inline-flex sm:my-1",
               listening
                 ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-500/90 hover:to-teal-500/90 text-black"
                 : "border border-neutral-400/70 bg-neutral-900 text-neutral-100 hover:bg-neutral-800 hover:border-neutral-200 shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
@@ -305,10 +313,27 @@ export default function MinimalTuner() {
         </div>
       </div>
 
+      {/* Centered mobile mic button */}
+      <div className="sm:hidden flex justify-center my-3">
+        <Button
+          onClick={toggleMic}
+          className={cn(
+            "z-10 gap-2 rounded-full px-4 cursor-pointer h-9 my-2",
+            listening
+              ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-500/90 hover:to-teal-500/90 text-black"
+              : "border border-neutral-400/70 bg-neutral-900 text-neutral-100 hover:bg-neutral-800 hover:border-neutral-200 shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
+          )}
+          variant={listening ? "default" : "secondary"}
+        >
+          {listening ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+          {listening ? "Listening" : "Tap to tune"}
+        </Button>
+      </div>
+
       {/* Stage */}
       <div
         ref={stageRef}
-        className="relative mx-auto aspect-[16/9] w-full overflow-hidden rounded-2xl border border-neutral-800"
+        className="relative mx-auto aspect-[9/12] sm:aspect-[16/9] w-full overflow-hidden rounded-2xl border border-neutral-800 -mt-1 sm:mt-0"
         style={{
           background: `radial-gradient(60% 50% at 50% 55%, rgba(168,85,247,0.12) 0%, rgba(20,20,20,0.0) 60%),
            linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
@@ -328,6 +353,7 @@ export default function MinimalTuner() {
           message={helper}
           top={indicatorTop ?? 56}
           showCheck={showCheck}
+          scale={indicatorScale}
         />
 
         {/* Optional analog dial */}
@@ -336,8 +362,7 @@ export default function MinimalTuner() {
         {/* Headstock */}
         <div
           ref={headRef}
-          className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-[42%]"
-          style={{ width: 411, height: 607 }}
+          className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-[56%] sm:-translate-y-[42%] w-[76%] sm:w-[76%] max-w-[411px]"
         >
           <Image
             src="/images/guitar-head.png"
@@ -345,7 +370,7 @@ export default function MinimalTuner() {
             width={411}
             height={607}
             priority
-            className="pointer-events-none select-none object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.4)]"
+            className="pointer-events-none select-none object-contain w-full h-auto drop-shadow-[0_30px_60px_rgba(0,0,0,0.4)]"
           />
         </div>
 
@@ -357,9 +382,11 @@ export default function MinimalTuner() {
           const letter = s.label.replace(/[0-9]/g, "")
           const pos = pegCoords[p.label]
           const fallbackLeft = p.side === "left" ? "30%" : "70%"
+          // Use responsive peg size derived from stage
+          const size = pegSize
           const style = pos
-            ? { left: `${pos.left}px`, top: `${pos.top}px` }
-            : { left: fallbackLeft, top: `${p.pctY * 100}%` }
+            ? { left: `${pos.left}px`, top: `${pos.top}px`, width: size, height: size }
+            : { left: fallbackLeft, top: `${p.pctY * 100}%`, width: size, height: size }
 
           return (
             <button
@@ -374,16 +401,16 @@ export default function MinimalTuner() {
                 startTone(s.label)
               }}
               className={cn(
-                "group absolute z-40 flex h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border text-lg font-semibold transition-all cursor-pointer",
+                "group absolute z-40 flex -translate-y-1/2 items-center justify-center rounded-full border font-semibold transition-all cursor-pointer",
                 isActive
                   ? "border-emerald-500 bg-emerald-500 text-black shadow-[0_0_0_2px_rgba(16,185,129,0.35),0_0_40px_rgba(16,185,129,0.25)]"
-                  : "border-white/15 bg-white/5 text-neutral-100 backdrop-blur hover:bg-white/10"
+                   : "border-white bg-white/5 text-neutral-100 backdrop-blur hover:bg-white/10"
               )}
               style={style as any}
               aria-pressed={isActive}
               aria-label={`Reference ${s.label}`}
             >
-              {letter}
+              <span style={{ fontSize: Math.round(size * 0.38) }}>{letter}</span>
             </button>
           )
         })}

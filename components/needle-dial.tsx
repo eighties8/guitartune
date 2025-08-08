@@ -11,8 +11,8 @@ export default function NeedleDial({ cents, inTune = false }: Props) {
 
   return (
     <div
-      className="pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-[48%] scale-90"
-      style={{ marginTop: -30 }} // nudge up ~30px
+      className="pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-[62%] scale-90"
+      style={{ marginTop: -30 }}
       aria-label="Analog tuning dial"
     >
       <svg width="220" height="160" viewBox="0 0 220 160">

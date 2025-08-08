@@ -13,6 +13,8 @@ type Props = {
   // Absolute Y (px) where the center line starts (we'll center horizontally with CSS)
   top?: number | null
   showCheck?: boolean
+  // Scales the whole indicator for responsiveness
+  scale?: number
 }
 
 export function CenterIndicator({
@@ -24,6 +26,7 @@ export function CenterIndicator({
   message,
   top = 56,
   showCheck = false,
+  scale = 1,
 }: Props) {
   const c = Math.round(cents)
   const ok = inTune && hasSignal
@@ -33,7 +36,10 @@ export function CenterIndicator({
   const LINE_HEIGHT = 14
 
   return (
-    <div className="absolute z-30 left-1/2 -translate-x-1/2 select-none" style={{ top: top ?? 56 }}>
+    <div
+      className="absolute z-30 left-1/2 select-none"
+      style={{ top: top ?? 56, transform: `translateX(-50%) scale(${Number.isFinite(scale) ? scale : 1})` }}
+    >
       {/* Helper text - moved above badge */}
       <div
         className={cn(
@@ -49,16 +55,16 @@ export function CenterIndicator({
       </div>
 
       {/* Badge row */}
-      <div className="relative mx-auto w-11">
+      <div className="relative mx-auto" style={{ width: `${44 * scale}px` }}>
         {/* Badge */}
-        <div className="relative h-11 w-11">
+        <div className="relative" style={{ width: `${44 * scale}px`, height: `${44 * scale}px` }}>
           <div className={cn("absolute inset-0 rounded-full blur-[6px] bg-gradient-to-tr opacity-60", ring)} />
           <div className={cn("absolute inset-0 rounded-full bg-gradient-to-tr p-[2px]", ring)}>
             <div className="flex h-full w-full items-center justify-center rounded-full bg-neutral-950">
               {ok ? (
-                <Check className="h-4 w-4 text-emerald-300" />
+                <Check className="text-emerald-300" style={{ width: `${16 * scale}px`, height: `${16 * scale}px` }} />
               ) : (
-                <span className="text-sm font-semibold text-neutral-100">
+                <span className="font-semibold text-neutral-100" style={{ fontSize: `${14 * scale}px` }}>
                   {hasSignal ? (c > 0 ? `+${c}` : `${c}`) : "0"}
                 </span>
               )}
@@ -69,9 +75,9 @@ export function CenterIndicator({
             style={{
               width: 0,
               height: 0,
-              borderLeft: "6px solid transparent",
-              borderRight: "6px solid transparent",
-              borderTop: "8px solid #0a0a0a",
+              borderLeft: `${6 * scale}px solid transparent`,
+              borderRight: `${6 * scale}px solid transparent`,
+              borderTop: `${8 * scale}px solid #0a0a0a`,
             }}
           />
         </div>
@@ -81,7 +87,7 @@ export function CenterIndicator({
       <div
         aria-hidden="true"
         className="mx-auto mt-2 w-px"
-        style={{ height: LINE_HEIGHT, background: "linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0.1))" }}
+        style={{ height: LINE_HEIGHT * scale, background: "linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0.1))" }}
       />
 
       {/* Note pill */}
@@ -93,8 +99,8 @@ export function CenterIndicator({
       >
         <div className="flex items-center justify-center">
           <div className="flex items-baseline justify-center gap-1">
-            <span className="text-3xl font-semibold leading-none text-current">{noteLetter || "—"}</span>
-            {noteOctave ? <span className="text-lg leading-none text-current">{String(noteOctave)}</span> : null}
+            <span className="font-semibold leading-none text-current" style={{ fontSize: `${28 * scale}px` }}>{noteLetter || "—"}</span>
+            {noteOctave ? <span className="leading-none text-current" style={{ fontSize: `${18 * scale}px` }}>{String(noteOctave)}</span> : null}
           </div>
         </div>
       </div>
