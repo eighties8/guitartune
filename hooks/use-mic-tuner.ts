@@ -12,10 +12,12 @@ function autoCorrelate(buf: Float32Array, sampleRate: number, acBuf: Float32Arra
     sum += v * v
   }
   const rms = Math.sqrt(sum / SIZE)
-  if (rms < 0.01) return -1
+  // Lowered gate to be more sensitive on quiet mobile mics (iOS Safari especially)
+  if (rms < 0.006) return -1
 
   // Center clip threshold to remove noise
-  const thres = 0.2
+  // Softer center-clip threshold to preserve weak fundamentals
+  const thres = 0.1
   let r1 = 0, r2 = SIZE - 1
   for (let i = 0; i < SIZE / 2; i++) {
     if (Math.abs(buf[i]) < thres) { r1 = i; break }
@@ -99,6 +101,9 @@ export function useMicTuner(opts: Options = {}) {
           echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false,
+          // Try to increase input fidelity on mobile devices
+          sampleRate: 48000 as any,
+          channelCount: 1,
           deviceId: opts.deviceId ? { exact: opts.deviceId } : undefined,
         },
         video: false,
@@ -108,15 +113,20 @@ export function useMicTuner(opts: Options = {}) {
       streamRef.current = stream
 
       const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext
-      const ctx = new Ctx()
+      const ctx = new Ctx({ latencyHint: "interactive", sampleRate: 48000 } as any)
       ctxRef.current = ctx
 
       const source = ctx.createMediaStreamSource(stream)
       const analyser = ctx.createAnalyser()
-      analyser.fftSize = 2048
+      analyser.fftSize = 4096
+      analyser.smoothingTimeConstant = 0.06
       analyserRef.current = analyser
 
-      source.connect(analyser)
+      const gain = ctx.createGain()
+      // Mild pre-amplification to help weak iPhone inputs without clipping
+      gain.gain.value = 1.8
+      source.connect(gain)
+      gain.connect(analyser)
 
       bufferRef.current = new Float32Array(analyser.fftSize)
       acBufRef.current = new Float32Array(analyser.fftSize)
