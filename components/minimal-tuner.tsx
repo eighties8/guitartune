@@ -199,9 +199,18 @@ export default function MinimalTuner() {
       setStageW(stageWpx)
       setIndicatorScale(Math.max(0.85, Math.min(1.1, stageWpx / 430)))
 
-      // Design in px, then store as %
-      const nextPegSizePx = Math.max(46, Math.min(84, Math.round(stageWpx * 0.18)))
-      const gapPx         = Math.max(6,  Math.min(16, stageWpx * 0.022))
+      // Old Peg size tuning (Design in px, then store as %)
+      // const nextPegSizePx = Math.max(46, Math.min(84, Math.round(stageWpx * 0.18)))
+      // const gapPx         = Math.max(6,  Math.min(16, stageWpx * 0.022))
+      // setPegSizePct((nextPegSizePx / stageWpx) * 100)
+      
+      // New Peg size tuning
+      const PEG_MIN = 38;           // was 46
+      const PEG_MAX = 70;           // was 84
+      const PEG_SCALE = 0.145;      // was 0.18 (≈20% smaller)
+
+      const nextPegSizePx = Math.max(PEG_MIN, Math.min(PEG_MAX, Math.round(stageWpx * PEG_SCALE)))
+      const gapPx         = Math.max(6, Math.min(16, stageWpx * 0.022))
       setPegSizePct((nextPegSizePx / stageWpx) * 100)
 
       const leftEdge  = headRect.left  - stageRect.left
@@ -292,7 +301,7 @@ export default function MinimalTuner() {
               variant={dial ? "default" : "secondary"}
             >
               <Gauge className="h-4 w-4" />
-              Dial: {dial ? "ON" : "OFF"}
+              Analog: {dial ? "ON" : "OFF"}
             </Button>
           </div>
 
@@ -412,17 +421,17 @@ export default function MinimalTuner() {
                   startTone(s.label)
                 }}
                 className={cn(
-                  "group absolute z-40 flex items-center justify-center rounded-full border font-semibold transition-all cursor-pointer",
-                  "-translate-x-1/2 -translate-y-1/2 aspect-square",
+                  "group absolute z-40 flex items-center justify-center rounded-full font-semibold transition-all cursor-pointer",
+                  "w-14 aspect-square -translate-x-1/2 -translate-y-1/2", // keeps them circular
                   isActive
-                    ? "border-emerald-500 bg-emerald-500 text-black shadow-[0_0_0_2px_rgba(16,185,129,0.35),0_0_40px_rgba(16,185,129,0.25)]"
-                    : "border-white bg-white/5 text-neutral-100 backdrop-blur hover:bg-white/10"
+                    ? "bg-emerald-500 text-black shadow-[0_0_0_2px_rgba(16,185,129,0.35),0_0_40px_rgba(16,185,129,0.25)]"
+                    : "bg-[#222] text-neutral-100 hover:bg-[#555]"
                 )}
                 style={style as any}
                 aria-pressed={isActive}
                 aria-label={`Reference ${s.label}`}
               >
-                <span style={{ fontSize: `${Math.round(fontPx)}px` }}>{letter}</span>
+                <span style={{ fontSize: `${Math.round(fontPx * 0.7)}px` }}>{letter}</span>
               </button>
             )
           })}
