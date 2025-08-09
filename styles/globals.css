@@ -121,3 +121,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  @media (max-width: 640px) {
+    .analog-tuner {
+      /* override the inline margin-top */
+      margin-top: -75px !important;
+
+      /* change scale without clobbering Tailwind’s translate/rotate */
+      --tw-scale-x: 0.7;
+      --tw-scale-y: 0.7;
+    }
+  }
+}

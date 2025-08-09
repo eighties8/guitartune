@@ -32,8 +32,8 @@ const PEGS: Peg[] = [
 ]
 
 // Offsets measured from the headstock rect
-const PEG_Y_OFFSET_PX = -49                     // vertical nudge for peg centers
-const LINE_START_OFFSET_FROM_TIP_PX = -14       // vertical anchor for center indicator
+const PEG_Y_OFFSET_PX = -49
+const LINE_START_OFFSET_FROM_TIP_PX = -26
 
 export default function MinimalTuner() {
   const [mode, setMode] = useState<Mode>("auto")
@@ -172,7 +172,7 @@ export default function MinimalTuner() {
   }
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Layout (percent-based) — remove shift by rendering only after first measure
+  // Layout (percent-based) — render only after first measure to avoid blink
   // ────────────────────────────────────────────────────────────────────────────
   const stageRef = useRef<HTMLDivElement | null>(null)
   const headRef  = useRef<HTMLDivElement | null>(null)
@@ -183,7 +183,7 @@ export default function MinimalTuner() {
   const [pegSizePct, setPegSizePct] = useState<number>(12) // % of stage width
   const [indicatorScale, setIndicatorScale] = useState<number>(1)
   const [stageW, setStageW] = useState<number>(0)          // for font-size calc
-  const [ready, setReady] = useState(false)                // ← key to prevent blink
+  const [ready, setReady] = useState(false)
 
   useLayoutEffect(() => {
     const calc = () => {
@@ -249,7 +249,6 @@ export default function MinimalTuner() {
   return (
     <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 pt-2 pb-1 sm:py-6">
       {/* Header */}
-      {/* <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-between gap-2 sm:gap-3"> */}
       <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-between gap-2 sm:gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <div className="size-10 sm:size-16 md:size-20 flex items-center justify-center shrink-0">
@@ -333,8 +332,7 @@ export default function MinimalTuner() {
       {/* Stage */}
       <div
         ref={stageRef}
-        className="relative mx-auto w-full overflow-hidden rounded-2xl border border-neutral-800 mt-4
-                  h-[clamp(420px,56vw,820px)]"
+        className="relative mx-auto w-full overflow-hidden rounded-2xl border border-neutral-800 mt-4 h-[clamp(560px,70vw,860px)]"
         style={{
           background: `radial-gradient(60% 50% at 50% 55%, rgba(168,85,247,0.12) 0%, rgba(20,20,20,0.0) 60%),
             linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
@@ -342,6 +340,7 @@ export default function MinimalTuner() {
             #0a0a0a`,
           backgroundSize: "auto, 32px 32px, 32px 32px, auto",
           backgroundPosition: "center, center, center, center",
+          height: "clamp(620px,70vw,860px)"
         }}
       >
         {/* Only render the moving UI once measured */}
@@ -372,7 +371,7 @@ export default function MinimalTuner() {
           {/* Headstock */}
           <div
             ref={headRef}
-            className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-[56%] sm:-translate-y-[50%] md:-translate-y-[46%] lg:-translate-y-[42%] w-[76%] sm:w-[76%] max-w-[411px]"
+            className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-[60%] sm:-translate-y-[54%] md:-translate-y-[48%] lg:-translate-y-[44%] w-[76%] sm:w-[76%] max-w-[411px]"
           >
             <Image
               src="/images/guitar-head.png"
@@ -398,7 +397,6 @@ export default function MinimalTuner() {
               ? { left: `${pos.leftPct}%`, top: `${pos.topPct}%`, width: `${pegSizePct}%` }
               : { left: `${fallbackLeftPct}%`, top: `${p.pctY * 100}%`, width: `${pegSizePct}%` }
 
-            // font size derived from rendered size ~38% of peg diameter
             const fontPx = stageW * (pegSizePct / 100) * 0.38
 
             return (

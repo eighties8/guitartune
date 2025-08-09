@@ -10,9 +10,17 @@ export default function NeedleDial({ cents, inTune = false }: Props) {
   const angle = (c / 50) * 45 // -45..+45 deg
 
   return (
+    // <div
+    //   className="analog-tuner pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-[62%] scale-90"
+    //   // style={{ marginTop: -15 }}
+    //   aria-label="Analog tuning dial"
+    // >
     <div
-      className="pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-[62%] scale-90"
-      style={{ marginTop: -15 }}
+      className="analog-tuner pointer-events-none absolute left-1/2 top-1/2 z-40
+                -translate-x-1/2 translate-y-[-62%] sm:translate-y-[-56%]
+                mt-[-75px] sm:mt-[-35px]
+                scale-[0.7] sm:scale-90
+                max-w-[411px]"
       aria-label="Analog tuning dial"
     >
       <svg width="220" height="160" viewBox="0 0 220 160">
